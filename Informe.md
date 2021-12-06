@@ -56,16 +56,38 @@ Para la representación de los datos se probaron 3 tipos de embeddings:
 
 Para el primer tipo de embeddings se computó una matriz de ocurrencia de unigramas. Esa matriz es luego reducida de dimensionalidad a 50 dimensiones usando SVD.
 El resultado es un vector de 50 dimensiones que representa a la pregunta original. Las deciciones de usar unigramas y 50 dimensiones fué principalmente por el 
-poder de cómputo disponible.
+poder de cómputo disponible. Tambien se probó usar los one-hot provenientes de la matriz de ocurrencia como features.
 
-En el segundo tipo de embeddings se emplearon word embeddings de [GLoVE](https://nlp.stanford.edu/projects/glove/) de 50 dimensiones. A estos embeddings se les
+En el segundo tipo de embeddings se emplearon word embeddings de [GLoVE](https://nlp.stanford.edu/projects/glove/) de 50 y 300 dimensiones. A estos embeddings se les
 agregar un vector aleatorio para palabras desconocidas. Luego, se transforman las oraciones a una lista de embeddings, estos se agregan y promedian resultando en
 un vector de 50 dimensiones que tiene la representación de la pregunta.
 
-El tercer y último tipo de embeddings son embeddings contextuales computados empleando BERT. Estos embeddings tienen 768 dimensiones que luego son reducidas a 50
-para mantener la tratabilidad del problema.
+El tercer y último tipo de embeddings son embeddings contextuales computados empleando BERT. Se hicieron dos experimentos: uno reduciendo la dimensionalidad a 50 dimensiones y otro manteniendo las 768 dimensiones del embedding original.
 
 # 4) Experimentos y Resultados
+
+Para evaluar los clusters obtenidos se usaron matrices de confución y la métrica de pureza ([Purity](https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-clustering-1.html)). Para cada uno de los experimentos generamos una matriz de confución *Question Type x Cluster* para ver cómo estos agrupan las preguntas y retornamos su puntaje de pureza.
+
+|      Feature       |       Pureza       |
+|:------------------:|:------------------:|
+|   Ocurrencia 50d   |  0.565361959255321 |
+| Ocurrencia One-hot | 0.5504076155754721 |
+|      Glove 50d     |  0.634513139905818 |
+|     Glove 300d     | 0.6236265127348221 |
+|    BERT Embs 50d   | 0.5642817357840904 |
+| BERT Embs          | 0.5486860094181983 |
+
+En general la pureza de los clusters no es muy alta. Los mejores resultados se obtienen con los word embeddings agregados de Glove, donde los clusters son un poco más especializados.
+
+![image](https://user-images.githubusercontent.com/8678939/144768457-c7f1741b-b3d9-4a2f-96b3-9d5eb7b2a4a1.png)
+
+En la matriz de confusion del modelo que usar Glove 50d se ve que los tipos de preguntas se distribuyen entre todos los clusters, con más o menos presencia de algunas de las clases. Es importante notar que la tipificación es una tarea de clasificación multiclase y, por lo tanto, una pregunta se cuenta en una vez para cada uno de sus tipos de pregunta (i.e. si una pregunta es de tipo color y spatial, se cuenta en ambas filas). En esta matriz se ve una presencia más marcada de las preguntas de objeto en el cluster 6, mientras que otros modelos suelen distribuirlas casi uniformemente entre todos los clusters.
+
+![image](https://user-images.githubusercontent.com/8678939/144768537-6200456f-c8b6-4b39-a38a-fe47d21abf80.png)
+
+En esta matriz de confusion se muestran los resultados usando BERT Embs 50d. Las preguntas de color, spatial y object son distribuidas mas uniformemente entre los distintos clusters.
+
+# 4.1) Análisis Cualitativo de Clusters
 
 Para el primer experimento se usaron embeddings basados en matriz de ocurrencia. Luego de ajustar un modelo de KMeans se observaron manualmente los clusters generados.
 Principalmente, los clusters mostraban un agrupamiento por la forma de la oración más allá de su tipo de pregunta o algún tipo emergente de pregunta:
