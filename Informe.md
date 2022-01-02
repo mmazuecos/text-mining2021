@@ -40,7 +40,7 @@ donde *game_id* es el identificador único para el juego, *question_id* el ident
 para el objeto a adivinar, *status* cómo terminó el juego (puede ser *success*, *failure* o *incomplete*) y *qtype* el tipo de pregunta que el previo clasificador
 le asigna a esa pregunta.
 
-La pregunta de investigación fué: hay información en la forma de la pregunta que permita tipificarlas?
+La pregunta de investigación fué: hay información en la forma de la pregunta que permita tipificarlas? Algo deseable sería que se puedan encontrar grupos de preguntas que correspondan a *affordances* ([Suglia et al., 2020](https://aclanthology.org/2020.acl-main.682/)), agrupamiento ([Testoni et al., 2020](https://www.aclweb.org/anthology/2020.splu-1.4/)), *grounding acts* ([Benotti and Blackburn, 2021](https://aclanthology.org/2021.eacl-main.41/)) o expresiones referenciales ([Mazuecos et al., 2020](https://www.aclweb.org/anthology/2020.alvr-1.4/)) y poder enriqueser la clasificación de preguntas propuesta en trabajo previo ([Shekhar et al., (2019)](https://aclanthology.org/N19-1265/)).
 
 ## 3) Metodología
 
@@ -58,15 +58,15 @@ Para el primer tipo de embeddings se computó una matriz de ocurrencia de unigra
 El resultado es un vector de 50 dimensiones que representa a la pregunta original. Las deciciones de usar unigramas y 50 dimensiones fué principalmente por el 
 poder de cómputo disponible. Tambien se probó usar los one-hot provenientes de la matriz de ocurrencia como features.
 
-En el segundo tipo de embeddings se emplearon word embeddings de [GLoVE](https://nlp.stanford.edu/projects/glove/) de 50 y 300 dimensiones. A estos embeddings se les
-agregar un vector aleatorio para palabras desconocidas. Luego, se transforman las oraciones a una lista de embeddings, estos se agregan y promedian resultando en
+En el segundo tipo de embeddings se emplearon word embeddings de [GLoVE](https://nlp.stanford.edu/projects/glove/) de 50 y 300 dimensiones. La ventaja de usar embeddings contra una representación esparsa como son las filas de una matriz de ocurrencia es que los primeros fueron computados previamente en enormes corpus de texto para capturar una noción de contenido semántico basado en el contexto en el que cada palabra ocurre. Esto A estos embeddings se les agrega un vector aleatorio para palabras desconocidas. Luego, se transforman las oraciones a una lista de embeddings, estos se agregan y promedian resultando en
 un vector de 50 dimensiones que tiene la representación de la pregunta.
 
-El tercer y último tipo de embeddings son embeddings contextuales computados empleando BERT. Se hicieron dos experimentos: uno reduciendo la dimensionalidad a 50 dimensiones y otro manteniendo las 768 dimensiones del embedding original.
+El tercer y último tipo de embeddings son embeddings contextuales computados empleando BERT ([Devlin et al., 2019)](https://arxiv.org/abs/1810.04805)). La ventaja que tienen los embeddings de BERT es que, para cada palabra, el embedding no solo contiene información contextual de la misma. De esta forma, el embedding para la palabra *red* en la pregunta "*is it the red one?*" no será el mismo que para la misma palabra en la pregunta "*next to the red one?*". Se hicieron dos experimentos: uno reduciendo la dimensionalidad a 50 dimensiones y otro manteniendo las 768 dimensiones del embedding original.
 
 # 4) Experimentos y Resultados
 
-Para evaluar los clusters obtenidos se usaron matrices de confución y la métrica de pureza ([Purity](https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-clustering-1.html)). Para cada uno de los experimentos generamos una matriz de confución *Question Type x Cluster* para ver cómo estos agrupan las preguntas y retornamos su puntaje de pureza.
+Para evaluar los clusters obtenidos se usaron matrices de confución y la métrica de pureza ([Purity](https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-clustering-1.html)). 
+Para cada uno de los experimentos generamos una matriz de confución *Question Type x Cluster* para ver cómo estos agrupan las preguntas y retornamos su puntaje de pureza.
 
 |      Feature       |       Pureza       |
 |:------------------:|:------------------:|
