@@ -65,8 +65,11 @@ El tercer y último tipo de embeddings son embeddings contextuales computados em
 
 # 4) Experimentos y Resultados
 
-Para evaluar los clusters obtenidos se usaron matrices de confución y la métrica de pureza ([Purity](https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-clustering-1.html)). 
-Para cada uno de los experimentos generamos una matriz de confución *Question Type x Cluster* para ver cómo estos agrupan las preguntas y retornamos su puntaje de pureza.
+Para evaluar los clusters obtenidos se usaron matrices de confución y la métrica de pureza ([Purity](https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-clustering-1.html)). Pureza es una métrica que mide la cantidad de falsos positivos en la clasificación de un cluster asumiendo que la clase de dicho cluster es su clase mayoritaria. 
+![image](https://user-images.githubusercontent.com/8678939/147890657-6948bcf9-a976-4ddb-9e60-024fcc7eed45.png)
+donde Ω = {w_1,..., w_k} es un conjunto de clusters y C= {c_1,...,c_m} es un conjunto de clases. En nuestro caso, las clases son cada uno de los tipos de pregunta propuestos previamente.  
+
+Para cada uno de los experimentos generamos una matriz de confución *Question Type x Cluster* para ver cómo estos agrupan las preguntas y retornamos su puntaje de pureza. Es importante notar que la tipificación es una tarea de clasificación multiclase y, por lo tanto, una pregunta se cuenta una vez para cada uno de sus tipos de pregunta (i.e. si una pregunta es de tipo color y spatial, se cuenta en ambas filas).
 
 |      Feature       |       Pureza       |
 |:------------------:|:------------------:|
@@ -77,15 +80,17 @@ Para cada uno de los experimentos generamos una matriz de confución *Question T
 |    BERT Embs 50d   | 0.5643             |
 | BERT Embs          | 0.5487             |
 
-En general la pureza de los clusters no es muy alta. Los mejores resultados se obtienen con los word embeddings agregados de Glove, donde los clusters son un poco más especializados.
+En general la pureza de los clusters no es muy alta. Esto puede mostrar que las clases emergentes impuestas por el algoritmo de clustering pueden ser transversales a los p. Los mejores resultados se obtienen con los word embeddings agregados de Glove, donde los clusters son un poco más especializados.
 
 ![image](https://user-images.githubusercontent.com/8678939/144768457-c7f1741b-b3d9-4a2f-96b3-9d5eb7b2a4a1.png)
 
-En la matriz de confusion del modelo que usar Glove 50d se ve que los tipos de preguntas se distribuyen entre todos los clusters, con más o menos presencia de algunas de las clases. Es importante notar que la tipificación es una tarea de clasificación multiclase y, por lo tanto, una pregunta se cuenta en una vez para cada uno de sus tipos de pregunta (i.e. si una pregunta es de tipo color y spatial, se cuenta en ambas filas). En esta matriz se ve una presencia más marcada de las preguntas de objeto en el cluster 6, mientras que otros modelos suelen distribuirlas casi uniformemente entre todos los clusters.
+En la matriz de confusion del modelo que usar Glove 50d se ve que los tipos de preguntas se distribuyen entre todos los clusters, con más o menos presencia de algunas de las clases.  En esta matriz se ve una presencia más marcada de las preguntas de objeto en el cluster 6, mientras que otros modelos suelen distribuirlas casi uniformemente entre todos los clusters.
 
 ![image](https://user-images.githubusercontent.com/8678939/144768537-6200456f-c8b6-4b39-a38a-fe47d21abf80.png)
 
 En esta matriz de confusion se muestran los resultados usando BERT Embs 50d. Las preguntas de color, spatial y object son distribuidas mas uniformemente entre los distintos clusters.
+
+En ambas matrices se ve que los tipos de preguntas están (en mayor o menor medida) igualmente distribuídas en los clusters. De ahí se puede concluir que el criterio de agrupamiento es transversal a los tipos de preguntas. Para ver esto mejor, en la siguiente sección presentamos un análisis cualitativo de los clusters obtenidos.
 
 # 4.1) Análisis Cualitativo de Clusters
 
