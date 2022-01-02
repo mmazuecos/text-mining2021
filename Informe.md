@@ -67,6 +67,7 @@ El tercer y último tipo de embeddings son embeddings contextuales computados em
 
 Para evaluar los clusters obtenidos se usaron matrices de confución y la métrica de pureza ([Purity](https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-clustering-1.html)). Pureza es una métrica que mide la cantidad de falsos positivos en la clasificación de un cluster asumiendo que la clase de dicho cluster es su clase mayoritaria. 
 ![image](https://user-images.githubusercontent.com/8678939/147890657-6948bcf9-a976-4ddb-9e60-024fcc7eed45.png)
+
 donde Ω = {w_1,..., w_k} es un conjunto de clusters y C= {c_1,...,c_m} es un conjunto de clases. En nuestro caso, las clases son cada uno de los tipos de pregunta propuestos previamente.  
 
 Para cada uno de los experimentos generamos una matriz de confución *Question Type x Cluster* para ver cómo estos agrupan las preguntas y retornamos su puntaje de pureza. Es importante notar que la tipificación es una tarea de clasificación multiclase y, por lo tanto, una pregunta se cuenta una vez para cada uno de sus tipos de pregunta (i.e. si una pregunta es de tipo color y spatial, se cuenta en ambas filas).
@@ -218,20 +219,29 @@ Si bien las separaciones se ven más marcadas aplicando t-SNE, los resultados fu
   
 ### 4.2) Clasificadores neuronales supervisados
 
-   Además de los modelos basados en clustering se entrenaron unos clasificadores basados en redes neuronales. Cada pregunta tiene un vector de 8 dimensiones como en la sección anterior que juega el rol de supervisión. Con esto podemos plantear el problema de clasificación como un problema de clasificación multi-etiqueta. Cada clasificador debe retornar un puntaje por cada uno de los tipos de pregunta para decir si la pregunta pertenece a cada una de esas categorías. Se prueban dos tipos de redes: uno que usa los features del Glove 50d, ya que su mayor score de pureza facilita la separabilidad para el modelo; el segundo simplemente usa embeddings de glove de 50 dimensiones con una GRU.
-  Cada modelo entrena por 5 épocas sobre el conjunto de datos de entrenamiento del GuessWhat?! optimizando la función de pérdida de [Entropía Cruzada Binaria](https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html). Luego se calcula el [*average precision score*](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html) que es un resumen de las métricas de precision y recall para distindos umbrales de clasificación.
+   Además de los modelos basados en clustering se entrenaron unos clasificadores basados en redes neuronales. Cada pregunta tiene un vector de 8 dimensiones como en la sección anterior que juega el rol de supervisión. Con esto podemos plantear el problema de clasificación como un problema de clasificación multi-etiqueta. Cada clasificador debe retornar un puntaje por cada uno de los tipos de pregunta para decir si la pregunta pertenece a cada una de esas categorías. Se prueban dos tipos de redes, descriptas a continuación.
+  
+  **Perceptrón multicapa**: usa los features del Glove 50d, ya que su mayor score de pureza facilita la separabilidad para el modelo. El modelo tiene dos capas, 50 dimensiones para el input, 50 dimensiones para la capa oculta y 8 dimensiones en la capa de salida. Los embeddings de las palabras de la pregunta son agregados como en el experimento Glove 50d.
+  
+  **GRU**: usa embeddings de glove de 50 dimensiones con una GRU. De esta forma el modelo puede explotar la naturaleza secuencial de la pregunta. La dimensión de la capa de entrada son 50 dimensiones, 128 dimensiones en la capa oculta. La salida de la capa de la GRU pasa por una capa lineal que la lleva a 8 dimensiones.
+  
+  Cada modelo entrena por 5 épocas sobre el conjunto de datos de entrenamiento del GuessWhat?! con batch_size=256 optimizando la función de pérdida de [Entropía Cruzada Binaria](https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html). Como optimizador se usa Adam con learning rate de 1e-3 y weight decay de 1e-5.
+
+  Para estos experimentos reportamos [*average precision score*](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html) que es un resumen de las métricas de precision y recall para distindos umbrales de clasificación.
   
 |      Modelo        |          AVP       |
 |:------------------:|:------------------:|
 |   MLP + Glove 50d  |       0.622        |
 |   GRU + word embs  |       0.744        |
   
-  Usar GRU con la secuencia de palabras convertida a word embeddings retorna la mejor performance en la tarea de clasificación. Sin embargo la performance sigue estando lejos de ser satisfactoria para emplear el clasificador para clasificar cualquier pregunta que pueda surgir en un diálogo. Cabe aclarar que parte de esto se puede deber a la gran cantidad de preguntas clasificadas como "*other*" que pueden estar siendo mal clasificadas.
+  Usar GRU con la secuencia de palabras convertida a word embeddings retorna la mejor performance en la tarea de clasificación. Sin embargo la performance sigue estando lejos de ser satisfactoria para emplear el clasificador para clasificar cualquier pregunta que pueda surgir en un diálogo. A pesar de todo es posible agregar estos al pipeline de un modelo de generación o un modelo de respuesta para guiar las predicciones de estos modelos.
   
 ## 5) Conclusiones
   
 En este trabajo se empleó técnicas no supervisadas para intentar obtener una mejor clasificación de las preguntas en el conjunto de datos de GuessWhat?!. Los resultados de algunos métodos mostraron tipos de preguntas interesantes pero en su mayoría los algoritmos basados en clustering agrupan las preguntas por su forma sintáctica. Esto puede ser un indicio de que hay información comunicada que escapa a la forma de la pregunta si se quiere objener una clasificación de preguntas por la información que solicitan o por la intención comunicativa.
   
 En una segunda aproximación se emplearon redes neuronales (MLP y GRU) para la tarea de clasificación multietiqueta, usando la clasificación del script previo como supervisión. En este contexto, usar un modelo simple de RNNs y word embeddings mostró los mejores resultados.
+  
+Extender la clasificación de preguntas con nuevos tipos de pregunta mostró no ser una tarea realizable con clustering y posiblemente sea muy dependiente de anotadores humanos con expertise en lingüística, lo cual lo hace algo muy costoso.
   
 Trabajo futuro sería entrenar un modelo de *Questioner* que pueda explicar su estrategia de preguntas mostrando qué tipo de pregunta considera más probable realizar en cada turno de diálogo.
